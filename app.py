@@ -5,7 +5,7 @@ from collections import Counter
 import re
 
 # Title
-st.title("Mandrill OTP ")
+st.title("Mandrill OTP Monitor & Deny List Remover")
 
 # Input for API key (hidden)
 mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
@@ -52,6 +52,9 @@ if st.button("Check Email Status"):
 
                     # Extract bounce reason for soft bounces
                     if msg.get("state") == "bounced":
+                        st.subheader("🔍 Bounce Message (Debug View)")
+                        st.code(msg)  # DEBUG: Full bounce message to inspect structure
+
                         bounce_detail = (
                             msg.get("diag", "") or
                             msg.get("reject_reason", "") or
@@ -67,7 +70,6 @@ if st.button("Check Email Status"):
                             st.info("No bounce message details found.")
 
                     if msg.get("state") == "rejected":
-                        st.code(msg)  # DEBUG: Show full message structure
                         st.error(f"Rejected Reason: {msg.get('reject_reason')}")
                         if st.button(f"Remove from Deny List: {email}"):
                             reject_payload = {
