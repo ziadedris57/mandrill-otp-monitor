@@ -4,7 +4,7 @@ import requests
 import datetime
 
 # Title
-st.title("Mandrill OTP Monitor & Deny List Remover")
+st.title("Tamara x Mandrill - Simulator")
 
 # Input for API key (hidden)
 mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
