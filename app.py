@@ -35,6 +35,13 @@ if st.button("Check Email Status"):
             if not results:
                 st.info("No emails found in the last 7 days.")
             else:
+                # Count statuses
+status_counts = Counter([msg.get('state') for msg in results])
+st.subheader("📊 Email Summary")
+st.write(f"Total Emails Found: {len(results)}")
+for status, count in status_counts.items():
+    st.write(f"**{status.capitalize()}**: {count}")
+
                 for msg in results:
                     st.write("---")
                     st.write(f"**Subject:** {msg.get('subject')}")
