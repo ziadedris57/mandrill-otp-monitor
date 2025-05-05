@@ -52,13 +52,19 @@ if st.button("Check Email Status"):
 
                     # Extract bounce reason for soft bounces
                     if msg.get("state") == "bounced":
-                        raw_msg = msg.get("_id", "")  # Replace with actual field if bounce reason is elsewhere
-                        bounce_detail = msg.get("diag", "") or msg.get("reject_reason", "") or ""
-                        match = re.search(r"Recipient address rejected: (.*?)\n", bounce_detail)
+                        bounce_detail = (
+                            msg.get("diag", "") or
+                            msg.get("reject_reason", "") or
+                            msg.get("metadata", {}).get("smtp_response", "") or
+                            msg.get("metadata", {}).get("reason", "")
+                        )
+                        match = re.search(r"Recipient address rejected: (.*)", bounce_detail)
                         if match:
-                            st.warning(f"Bounce Reason: {match.group(1)}")
+                            st.warning(f"Bounce Reason: {match.group(1).strip()}")
                         elif bounce_detail:
-                            st.warning(f"Bounce Detail: {bounce_detail}")
+                            st.warning(f"Bounce Detail: {bounce_detail.strip()}")
+                        else:
+                            st.info("No bounce message details found.")
 
                     if msg.get("state") == "rejected":
                         st.error(f"Rejected Reason: {msg.get('reject_reason')}")
