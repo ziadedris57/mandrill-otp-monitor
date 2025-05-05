@@ -49,13 +49,13 @@ if st.button("Check Email Status"):
                     st.write("---")
                     st.write(f"**Subject:** {msg.get('subject')}")
                     st.write(f"**Status:** {msg.get('state')}")
+                    st.write(f"State Found: {msg.get('state')}")  # DEBUG: Show actual state value
                     st.write(f"**Sent At:** {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}")
 
                     # Extract bounce reason for soft bounces
                     if msg.get("state") == "bounced":
                         st.subheader("🔍 Bounce Message (Debug View)")
                         st.code(json.dumps(msg, indent=2))  # Properly render JSON structure
-  # DEBUG: Full bounce message to inspect structure
 
                         bounce_detail = (
                             msg.get("diag", "") or
