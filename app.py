@@ -3,6 +3,7 @@ import requests
 import datetime
 from collections import Counter
 import re
+import json
 
 # Title
 st.title("Mandrill OTP Monitor & Deny List Remover")
@@ -53,7 +54,8 @@ if st.button("Check Email Status"):
                     # Extract bounce reason for soft bounces
                     if msg.get("state") == "bounced":
                         st.subheader("🔍 Bounce Message (Debug View)")
-                        st.code(msg)  # DEBUG: Full bounce message to inspect structure
+                        st.code(json.dumps(msg, indent=2))  # Properly render JSON structure
+  # DEBUG: Full bounce message to inspect structure
 
                         bounce_detail = (
                             msg.get("diag", "") or
