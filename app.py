@@ -2,9 +2,10 @@ import streamlit as st
 import requests
 import datetime
 from collections import Counter
+import re
 
 # Title
-st.title("Mandrill Simulator")
+st.title("Mandrill OTP Monitor & Deny List Remover")
 
 # Input for API key (hidden)
 mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
@@ -48,6 +49,16 @@ if st.button("Check Email Status"):
                     st.write(f"**Subject:** {msg.get('subject')}")
                     st.write(f"**Status:** {msg.get('state')}")
                     st.write(f"**Sent At:** {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}")
+
+                    # Extract bounce reason for soft bounces
+                    if msg.get("state") == "bounced":
+                        raw_msg = msg.get("_id", "")  # Replace with actual field if bounce reason is elsewhere
+                        bounce_detail = msg.get("diag", "") or msg.get("reject_reason", "") or ""
+                        match = re.search(r"Recipient address rejected: (.*?)\n", bounce_detail)
+                        if match:
+                            st.warning(f"Bounce Reason: {match.group(1)}")
+                        elif bounce_detail:
+                            st.warning(f"Bounce Detail: {bounce_detail}")
 
                     if msg.get("state") == "rejected":
                         st.error(f"Rejected Reason: {msg.get('reject_reason')}")
