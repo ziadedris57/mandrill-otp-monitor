@@ -67,6 +67,7 @@ if st.button("Check Email Status"):
                             st.info("No bounce message details found.")
 
                     if msg.get("state") == "rejected":
+                        st.code(msg)  # DEBUG: Show full message structure
                         st.error(f"Rejected Reason: {msg.get('reject_reason')}")
                         if st.button(f"Remove from Deny List: {email}"):
                             reject_payload = {
