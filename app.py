@@ -1,10 +1,10 @@
-
 import streamlit as st
 import requests
 import datetime
+from collections import Counter
 
 # Title
-st.title("Tamara x Mandrill - Simulator")
+st.title("Mandrill Simulator")
 
 # Input for API key (hidden)
 mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
@@ -42,6 +42,7 @@ if st.button("Check Email Status"):
                 for status, count in status_counts.items():
                     st.write(f"**{status.capitalize()}**: {count}")
 
+                # Show message details
                 for msg in results:
                     st.write("---")
                     st.write(f"**Subject:** {msg.get('subject')}")
