@@ -5,7 +5,7 @@ from collections import Counter
 import re
 
 # Title
-st.title("Mandrill OTP Monitor & Deny List Remover")
+st.title("Mandrill OTP ")
 
 # Input for API key (hidden)
 mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
