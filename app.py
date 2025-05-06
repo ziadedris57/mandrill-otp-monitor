@@ -7,7 +7,7 @@ import json
 
 # Title
 st.markdown("""
-<h1 style='color:#0059b3;font-family:sans-serif;'>📧 TxM Simulator</h1>
+<h1 style='color:#003366;font-family:sans-serif;'>📧 TxM Simulator</h1>
 """, unsafe_allow_html=True)
 
 # Input for API key (hidden)
@@ -49,14 +49,14 @@ if st.button("Check Email Status"):
                 # Show message details in styled cards
                 for msg in results:
                     state = msg.get("state")
-                    status_color = "#d4edda" if state == "sent" else ("#fff3cd" if state == "soft-bounced" else "#f8d7da")
+                    status_color = "#eafbea" if state == "sent" else ("#fff8e5" if state == "soft-bounced" else "#fdeaea")
 
                     st.markdown(f"""
-<div style='background-color:{status_color};padding:20px;margin:10px 0;border-radius:10px;font-family:sans-serif;'>
-  <h4 style='margin-top:0;'>📨 Subject: {msg.get('subject')}</h4>
-  <p><strong>Status:</strong> {'✅ Successfully delivered' if state == 'sent' else state}</p>
-  <p><strong>Sent At:</strong> {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}</p>
-  <p><strong>Opens:</strong> {msg.get('opens', 0)} | <strong>Clicks:</strong> {msg.get('clicks', 0)}</p>
+<div style='background-color:{status_color};padding:20px;margin:10px 0;border-radius:12px;font-family:sans-serif;border:1px solid #ccc;'>
+  <h4 style='margin-top:0;color:#003366;'>📨 Subject: {msg.get('subject')}</h4>
+  <p style='color:#333;'><strong>Status:</strong> {'✅ Successfully delivered' if state == 'sent' else state}</p>
+  <p style='color:#333;'><strong>Sent At:</strong> {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}</p>
+  <p style='color:#333;'><strong>Opens:</strong> {msg.get('opens', 0)} | <strong>Clicks:</strong> {msg.get('clicks', 0)}</p>
 """, unsafe_allow_html=True)
 
                     # Extract bounce reason for soft bounces
@@ -69,9 +69,9 @@ if st.button("Check Email Status"):
                         )
                         match = re.search(r"Recipient address rejected: (.*)", bounce_detail)
                         if match:
-                            st.markdown(f"<p style='color:#856404;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {match.group(1).strip()}</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {match.group(1).strip()}</p>", unsafe_allow_html=True)
                         elif bounce_detail:
-                            st.markdown(f"<p style='color:#856404;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>", unsafe_allow_html=True)
                         else:
                             st.info("No bounce message details found.")
 
