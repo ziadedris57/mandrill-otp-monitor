@@ -6,7 +6,9 @@ import re
 import json
 
 # Title
-st.title("Mandrill OTP Monitor & Deny List Remover")
+st.markdown("""
+<h1 style='color:#0059b3;font-family:sans-serif;'>📧 TxM Simulator</h1>
+""", unsafe_allow_html=True)
 
 # Input for API key (hidden)
 mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
@@ -44,29 +46,21 @@ if st.button("Check Email Status"):
                 for status, count in status_counts.items():
                     st.write(f"**{status.capitalize()}**: {count}")
 
-                # Show message details
+                # Show message details in styled cards
                 for msg in results:
-                    st.write("---")
-                    st.write(f"**Subject:** {msg.get('subject')}")
-
                     state = msg.get("state")
-                    if state == "sent":
-                        st.success("Status: Successfully delivered")
-                    else:
-                        st.write(f"**Status:** {state}")
+                    status_color = "#d4edda" if state == "sent" else ("#fff3cd" if state == "soft-bounced" else "#f8d7da")
 
-                    st.write(f"State Found: {state}")  # DEBUG: Show actual state value
-                    st.write(f"**Sent At:** {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}")
-
-                    # Show opens and clicks
-                    st.write(f"**Opens:** {msg.get('opens', 0)}")
-                    st.write(f"**Clicks:** {msg.get('clicks', 0)}")
+                    st.markdown(f"""
+<div style='background-color:{status_color};padding:20px;margin:10px 0;border-radius:10px;font-family:sans-serif;'>
+  <h4 style='margin-top:0;'>📨 Subject: {msg.get('subject')}</h4>
+  <p><strong>Status:</strong> {'✅ Successfully delivered' if state == 'sent' else state}</p>
+  <p><strong>Sent At:</strong> {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}</p>
+  <p><strong>Opens:</strong> {msg.get('opens', 0)} | <strong>Clicks:</strong> {msg.get('clicks', 0)}</p>
+""", unsafe_allow_html=True)
 
                     # Extract bounce reason for soft bounces
                     if state in ["bounced", "soft-bounced"]:
-                        st.subheader("🔍 Bounce Message (Debug View)")
-                        st.code(json.dumps(msg, indent=2))  # Properly render JSON structure
-
                         bounce_detail = (
                             msg.get("diag", "") or
                             msg.get("reject_reason", "") or
@@ -75,14 +69,14 @@ if st.button("Check Email Status"):
                         )
                         match = re.search(r"Recipient address rejected: (.*)", bounce_detail)
                         if match:
-                            st.warning(f"Bounce Reason: {match.group(1).strip()}")
+                            st.markdown(f"<p style='color:#856404;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {match.group(1).strip()}</p>", unsafe_allow_html=True)
                         elif bounce_detail:
-                            st.warning(f"Bounce Detail: {bounce_detail.strip()}")
+                            st.markdown(f"<p style='color:#856404;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>", unsafe_allow_html=True)
                         else:
                             st.info("No bounce message details found.")
 
                     if state == "rejected":
-                        st.error(f"Rejected Reason: {msg.get('reject_reason')}")
+                        st.markdown(f"<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>❌ Rejected Reason: {msg.get('reject_reason')}</p>", unsafe_allow_html=True)
                         if st.button(f"Remove from Deny List: {email}"):
                             reject_payload = {
                                 "key": mandrill_api_key,
@@ -93,5 +87,7 @@ if st.button("Check Email Status"):
                                 st.success("Email successfully removed from deny list.")
                             else:
                                 st.error("Failed to remove from deny list.")
+
+                    st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.error("Failed to contact Mandrill API. Check your API key or network.")
