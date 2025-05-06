@@ -48,12 +48,22 @@ if st.button("Check Email Status"):
                 for msg in results:
                     st.write("---")
                     st.write(f"**Subject:** {msg.get('subject')}")
-                    st.write(f"**Status:** {msg.get('state')}")
-                    st.write(f"State Found: {msg.get('state')}")  # DEBUG: Show actual state value
+
+                    state = msg.get("state")
+                    if state == "sent":
+                        st.success("Status: Successfully delivered")
+                    else:
+                        st.write(f"**Status:** {state}")
+
+                    st.write(f"State Found: {state}")  # DEBUG: Show actual state value
                     st.write(f"**Sent At:** {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}")
 
+                    # Show opens and clicks
+                    st.write(f"**Opens:** {msg.get('opens', 0)}")
+                    st.write(f"**Clicks:** {msg.get('clicks', 0)}")
+
                     # Extract bounce reason for soft bounces
-                    if msg.get("state") in ["bounced", "soft-bounced"]:
+                    if state in ["bounced", "soft-bounced"]:
                         st.subheader("🔍 Bounce Message (Debug View)")
                         st.code(json.dumps(msg, indent=2))  # Properly render JSON structure
 
@@ -71,7 +81,7 @@ if st.button("Check Email Status"):
                         else:
                             st.info("No bounce message details found.")
 
-                    if msg.get("state") == "rejected":
+                    if state == "rejected":
                         st.error(f"Rejected Reason: {msg.get('reject_reason')}")
                         if st.button(f"Remove from Deny List: {email}"):
                             reject_payload = {
