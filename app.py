@@ -6,6 +6,7 @@ import re
 import json
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, ConnectionPatch
+import hashlib
 
 # Apply background styling and center layout
 st.markdown("""
@@ -86,16 +87,24 @@ with tab1:
                                 extra_html = f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>"
                     
                         # Rejected emails – add deny list removal button
-                        if state == "rejected":
+                       if state == "rejected":
                             to_email = msg.get("email", "")
                             reject_reason = msg.get("reject_reason", "")
                             
-                            # Sanitize email to use as Streamlit widget key
-                            safe_key = "remove_" + re.sub(r'[^a-zA-Z0-9_]', '_', to_email)
+                            # Show reject reason
+                            st.markdown(f"""
+                                <p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>
+                                    🚫 Reject Reason: {reject_reason}
+                                </p>
+                                <p><strong>Email:</strong> {to_email}</p>
+                            """, unsafe_allow_html=True)
                         
-                            st.markdown(f"<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>🚫 {reject_reason}</p>", unsafe_allow_html=True)
+                            # Generate a safe and unique key using email hash
+                            key_hash = hashlib.md5(to_email.encode()).hexdigest()
+                            button_key = f"remove_deny_{key_hash}"
                         
-                            if st.button("🧹 Remove from Deny List", key=safe_key):
+                            # Use safe label and safe key
+                            if st.button("🧹 Remove from Deny List", key=button_key):
                                 reject_payload = {
                                     "key": mandrill_api_key,
                                     "email": to_email
@@ -104,7 +113,7 @@ with tab1:
                                 if remove_response.status_code == 200:
                                     st.success(f"✅ {to_email} removed from deny list.")
                                 else:
-                                    st.error("❌ Failed to remove from deny list.")
+                                    st.error(f"❌ Failed to remove {to_email} from deny list.")
 
                             
 
