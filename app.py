@@ -107,7 +107,9 @@ with tab1:
                                     else:
                                         st.error(f"❌ Failed to remove {to_email} from deny list.")
                         
-                                extra_html += f\"\"\"\n<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>🚫 {reject_reason}</p>\n\"\"\"
+                                extra_html += f"""
+<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>🚫 {reject_reason}</p>
+"""
 
 
                     
