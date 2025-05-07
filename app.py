@@ -88,25 +88,27 @@ with tab1:
                         # Rejected emails – add deny list removal button
                         if state == "rejected":
                             reject_reason = msg.get("reject_reason", "")
-                            is_denied = "deny" in reject_reason.lower()
+                            to_email = msg.get("email", "")
+                            safe_key = "remove_" + re.sub(r'[^a-zA-Z0-9_]', '_', to_email)
+                            extra_html = ""
                         
-                            if is_denied:
-                                to_email = msg.get("email")
-                                if to_email:
-                                    remove_key = f"remove_{to_email.replace('@', '_').replace('.', '_')}"
-                                    if st.button(f"🧹 Remove from Deny List for {to_email}", key=remove_key):
-                                        remove_payload = {
-                                            "key": mandrill_api_key,
-                                            "email": to_email
-                                        }
-                                        remove_response = requests.post(
-                                            "https://mandrillapp.com/api/1.0/rejects/delete.json",
-                                            json=remove_payload
-                                        )
-                                        if remove_response.status_code == 200:
-                                            st.success(f"✅ {to_email} removed from deny list.")
-                                        else:
-                                            st.error(f"❌ Failed to remove {to_email} from deny list.")
+                            if "deny" in reject_reason.lower() and to_email:
+                                if st.button(f"🧹 Remove from Deny List for {to_email}", key=safe_key):
+                                    remove_payload = {
+                                        "key": mandrill_api_key,
+                                        "email": to_email
+                                    }
+                                    remove_response = requests.post(
+                                        "https://mandrillapp.com/api/1.0/rejects/delete.json",
+                                        json=remove_payload
+                                    )
+                                    if remove_response.status_code == 200:
+                                        st.success(f"✅ {to_email} removed from deny list.")
+                                    else:
+                                        st.error(f"❌ Failed to remove {to_email} from deny list.")
+                        
+                                extra_html += f\"\"\"\n<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>🚫 {reject_reason}</p>\n\"\"\"
+
 
                     
                         # Delivered status label
