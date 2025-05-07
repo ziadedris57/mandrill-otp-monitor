@@ -87,13 +87,17 @@ with tab1:
                     
                         # Rejected emails – add deny list removal button
                         if state == "rejected":
-                            reject_reason = msg.get("reject_reason", "")
                             to_email = msg.get("email", "")
-                            safe_key = "remove_" + re.sub(r'[^a-zA-Z0-9_]', '_', to_email)
+                            reject_reason = msg.get("reject_reason", "")
                             extra_html = ""
                         
+                            # If on deny list
                             if "deny" in reject_reason.lower() and to_email:
-                                if st.button(f"🧹 Remove from Deny List for {to_email}", key=safe_key):
+                                # Safe Streamlit key
+                                safe_key = "remove_" + re.sub(r'[^a-zA-Z0-9_]', '_', to_email)
+                        
+                                # Show the removal button
+                                if st.button(f"🧹 Remove from Deny List: {to_email}", key=safe_key):
                                     remove_payload = {
                                         "key": mandrill_api_key,
                                         "email": to_email
@@ -107,9 +111,12 @@ with tab1:
                                     else:
                                         st.error(f"❌ Failed to remove {to_email} from deny list.")
                         
-                                extra_html += f"""
-<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>🚫 {reject_reason}</p>
-"""
+                                # Add a note to the email card
+                                extra_html = f"""
+                                <p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>
+                                    🚫 {reject_reason}
+                                </p>
+                                """
 
 
                     
