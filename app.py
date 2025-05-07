@@ -92,7 +92,7 @@ with tab1:
 
                         if state == "rejected":
                             st.markdown(f"<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>❌ Rejected Reason: {msg.get('reject_reason')}</p>", unsafe_allow_html=True)
-                            if st.button(f"Remove from Deny List: {email}"):
+                            if st.button(f"Remove from Deny List: {email} "):
                                 reject_payload = {
                                     "key": mandrill_api_key,
                                     "email": email
@@ -110,24 +110,37 @@ with tab1:
 with tab2:
     st.subheader("🚀 Merchant Activation")
 
-    # Input for API key (hidden)
     mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
-
-    # Get date 7 days ago
     date_from = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
 
-    # Search Mandrill for all messages
     search_payload = {
         "key": mandrill_api_key,
         "query": "Activate Tamara for your store",
         "date_from": date_from,
-        "limit": 100
+        "limit": 1000
     }
 
     response = requests.post("https://mandrillapp.com/api/1.0/messages/search.json", json=search_payload)
 
     if response.status_code == 200:
         results = response.json()
-        st.info(f"Total users sent activation email: {len(results)}")
+        sent_count = len(results)
+        opened = [msg for msg in results if msg.get("opens", 0) > 0]
+        unopened = [msg for msg in results if msg.get("opens", 0) == 0]
+        open_rate = (len(opened) / sent_count * 100) if sent_count else 0
+
+        st.metric("📬 Emails Sent", sent_count)
+        st.metric("📖 Emails Opened", len(opened))
+        st.metric("📈 Open Rate", f"{open_rate:.1f}%")
+
+        if unopened:
+            st.markdown("---")
+            st.subheader("📪 Unopened Emails")
+            for msg in unopened:
+                st.write(f"- {msg.get('email')}")
+
+            if st.button("📤 SEND AGAIN to All Unopened"):
+                # Placeholder for resend logic
+                st.success("Resend triggered for unopened emails (simulation only)")
     else:
         st.error("Failed to fetch activation email data from Mandrill.")
