@@ -87,7 +87,7 @@ with tab1:
                     
                         # Rejected emails – add deny list removal button
                         if state == "rejected":
-                            st.error(f"Rejected Reason: {msg.get('reject_reason')}")
+                            # st.error(f"Rejected Reason: {msg.get('reject_reason')}")
                             if st.button(f"Remove from Deny List: {email}"):
                                 reject_payload = {
                                     "key": mandrill_api_key,
