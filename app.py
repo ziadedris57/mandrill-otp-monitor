@@ -55,6 +55,22 @@ with tab1:
                         st.write(f"**{status.capitalize()}**: {count}")
                     for msg in results:
                         state = msg.get("state")
+                        status_color = "#eafbea" if state == "sent" else (
+                            "#fff8e5" if state == "soft-bounced" else (
+                                "#fdeaea" if state == "rejected" else "#f0f0f0"
+                            )
+                        )
+                    
+                        # Extract common values
+                        subject = msg.get("subject", "No Subject")
+                        sent_at = datetime.datetime.fromtimestamp(msg.get("ts")).strftime("%Y-%m-%d %H:%M:%S")
+                        opens = msg.get("opens", 0)
+                        clicks = msg.get("clicks", 0)
+                    
+                        # Start the extra block (reason or button)
+                        extra_html = ""
+                    
+                        # Soft bounce reason
                         if state == "soft-bounced":
                             bounce_detail = (
                                 msg.get("diag", "") or
@@ -65,31 +81,36 @@ with tab1:
                             match = re.search(r"Recipient address rejected: (.*)", bounce_detail)
                             if match:
                                 bounce_reason = match.group(1).strip()
-                                st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {bounce_reason}</p>", unsafe_allow_html=True)
+                                extra_html = f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {bounce_reason}</p>"
                             elif bounce_detail:
-                                st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>", unsafe_allow_html=True)
-                    if state == "soft-bounced":
-                        bounce_detail = (
-                            msg.get("diag", "") or
-                            msg.get("reject_reason", "") or
-                            msg.get("metadata", {}).get("smtp_response", "") or
-                            msg.get("metadata", {}).get("reason", "")
-                        )
-                        match = re.search(r"Recipient address rejected: (.*)", bounce_detail)
-                        if match:
-                            bounce_reason = match.group(1).strip()
-                            st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {bounce_reason}</p>", unsafe_allow_html=True)
-                        elif bounce_detail:
-                            st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>", unsafe_allow_html=True)
-                        status_color = "#eafbea" if state == "sent" else ("#fff8e5" if state == "soft-bounced" else "#fdeaea")
+                                extra_html = f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>"
+                    
+                        # Rejected emails – add deny list removal button
+                        if state == "rejected":
+                            extra_html += f"""
+                            <form method='post'>
+                                <button onclick="window.location.reload();"
+                                style='background:#f44336;color:white;padding:8px 16px;border:none;border-radius:5px;margin-top:10px;'>
+                                    Remove from Deny List
+                                </button>
+                            </form>
+                            """
+                    
+                        # Delivered status label
+                        readable_state = "✅ Successfully delivered" if state == "sent" else state
+                    
+                        # Final email card rendering
                         st.markdown(f"""
-<div style='background-color:{status_color};padding:20px;margin:20px auto;border-radius:12px;font-family:sans-serif;border:1px solid #ccc;max-width:700px;'>
-  <h4 style='margin-top:0;color:#003366;'>📨 Subject: {msg.get('subject')}</h4>
-  <p style='color:#333;'><strong>Status:</strong> {'✅ Successfully delivered' if state == 'sent' else state}</p>
-  <p style='color:#333;'><strong>Sent At:</strong> {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}</p>
-  <p style='color:#333;'><strong>Opens:</strong> {msg.get('opens', 0)} | <strong>Clicks:</strong> {msg.get('clicks', 0)}</p>
-</div>
-""", unsafe_allow_html=True)
+                        <div style='background-color:{status_color};padding:20px;margin:20px auto;
+                                    border-radius:12px;font-family:sans-serif;border:1px solid #ccc;max-width:700px;'>
+                          <h4 style='margin-top:0;color:#003366;'>📨 Subject: {subject}</h4>
+                          <p style='color:#333;'><strong>Status:</strong> {readable_state}</p>
+                          <p style='color:#333;'><strong>Sent At:</strong> {sent_at}</p>
+                          <p style='color:#333;'><strong>Opens:</strong> {opens} | <strong>Clicks:</strong> {clicks}</p>
+                          {extra_html}
+                        </div>
+                        """, unsafe_allow_html=True)
+
             else:
                 st.error("Failed to contact Mandrill API. Check your API key or network.")
 
