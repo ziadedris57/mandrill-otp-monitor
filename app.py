@@ -89,7 +89,7 @@ with tab2:
         open_rate = (len(opened) / sent_count * 100) if sent_count else 0
 
         st.markdown(f"""
-        <div style='background: #fefefe; padding: 30px; margin-top: 10px; border-radius: 16px; border: 1px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: sans-serif;'>
+        <div style='background: #2c3e50; color: #ffffff; padding: 30px; margin-top: 10px; border-radius: 16px; border: 1px solid #1a252f; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: sans-serif;'>
             <h3>📊 Activation Email Funnel (Last 7 Days)</h3>
             <p><strong>Total Sent:</strong> {sent_count}</p>
             <p><strong>Opened:</strong> {len(opened)} ({open_rate:.1f}%)</p>
