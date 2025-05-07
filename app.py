@@ -109,4 +109,25 @@ with tab1:
 
 with tab2:
     st.subheader("🚀 Merchant Activation")
-    st.write("This is a placeholder for merchant onboarding functionality.")
+
+    # Input for API key (hidden)
+    mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
+
+    # Get date 7 days ago
+    date_from = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+
+    # Search Mandrill for all messages
+    search_payload = {
+        "key": mandrill_api_key,
+        "query": "Activate Tamara for your store",
+        "date_from": date_from,
+        "limit": 100
+    }
+
+    response = requests.post("https://mandrillapp.com/api/1.0/messages/search.json", json=search_payload)
+
+    if response.status_code == 200:
+        results = response.json()
+        st.info(f"Total users sent activation email: {len(results)}")
+    else:
+        st.error("Failed to fetch activation email data from Mandrill.")
