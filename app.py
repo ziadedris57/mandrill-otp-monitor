@@ -88,8 +88,7 @@ with tab1:
                         # Rejected emails – add deny list removal button
                         if state == "rejected":
                             to_email = msg.get("email", "")
-                            reject_reason = msg.get("reject_reason", "")
-                            extra_html = ""
+                           
                         
                             # If on deny list
                             if "deny" in reject_reason.lower() and to_email:
@@ -112,12 +111,7 @@ with tab1:
                                         st.error(f"❌ Failed to remove {to_email} from deny list.")
                         
                                 # Add a note to the email card
-                                extra_html = f"""
-                                <p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>
-                                    🚫 {reject_reason}
-                                </p>
-                                """
-
+                               
 
                     
                         # Delivered status label
