@@ -85,7 +85,8 @@ with tab2:
         opened = [msg for msg in results if msg.get("opens", 0) > 0]
         soft_bounced = [msg for msg in results if msg.get("state") == "soft-bounced"]
         rejected = [msg for msg in results if msg.get("state") == "rejected"]
-        delivered = [msg for msg in results if msg.get("state") == "sent"]
+        unopened = [msg for msg in results if msg.get("opens", 0) == 0]
+delivered = [msg for msg in unopened if msg.get("state") == "sent"]
         open_rate = (len(opened) / sent_count * 100) if sent_count else 0
 
         st.markdown(f"""
@@ -114,7 +115,7 @@ with tab2:
         levels = {
             "Sent": sent_count,
             "Opened": len(opened),
-            "Unopened": sent_count - len(opened),
+            "Unopened": len(unopened),
             "Rejected": len(rejected),
             "Soft Bounced": len(soft_bounced),
             "Delivered": len(delivered),
