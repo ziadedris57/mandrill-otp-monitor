@@ -4,6 +4,8 @@ import datetime
 from collections import Counter, defaultdict
 import re
 import json
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, ConnectionPatch
 
 # Apply background styling and center layout
 st.markdown("""
@@ -26,7 +28,6 @@ tab1, tab2 = st.tabs(["Email Debugger", "Merchant Activation"])
 
 with tab1:
     st.subheader("📬 Email Debugger")
-
     mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
     email = st.text_input("Enter Customer Email")
 
@@ -42,7 +43,6 @@ with tab1:
                 "limit": 20
             }
             response = requests.post("https://mandrillapp.com/api/1.0/messages/search.json", json=search_payload)
-
             if response.status_code == 200:
                 results = response.json()
                 if not results:
@@ -53,7 +53,6 @@ with tab1:
                     st.write(f"Total Emails Found: {len(results)}")
                     for status, count in status_counts.items():
                         st.write(f"**{status.capitalize()}**: {count}")
-
                     for msg in results:
                         state = msg.get("state")
                         status_color = "#eafbea" if state == "sent" else ("#fff8e5" if state == "soft-bounced" else "#fdeaea")
@@ -70,7 +69,6 @@ with tab1:
 
 with tab2:
     st.subheader("🚀 Merchant Activation")
-
     mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
     date_from = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
     search_payload = {
@@ -91,7 +89,7 @@ with tab2:
         open_rate = (len(opened) / sent_count * 100) if sent_count else 0
 
         st.markdown(f"""
-        <div style='background-color:#ffffff;padding:30px 30px 10px 30px;margin-top:10px;border-radius:12px;border:1px solid #ccc;'>
+        <div style='background: #fefefe; padding: 30px; margin-top: 10px; border-radius: 16px; border: 1px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: sans-serif;'>
             <h3>📊 Activation Email Funnel (Last 7 Days)</h3>
             <p><strong>Total Sent:</strong> {sent_count}</p>
             <p><strong>Opened:</strong> {len(opened)} ({open_rate:.1f}%)</p>
@@ -101,43 +99,59 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        if rejected:
-            st.markdown("---")
-            st.subheader("❌ Rejected Emails")
-            for msg in rejected:
-                st.write(f"- {msg.get('email')}")
-            if st.button("🧹 Remove All Rejected from Deny List"):
-                removed = 0
-                for msg in rejected:
-                    if msg.get("email"):
-                        r = requests.post("https://mandrillapp.com/api/1.0/rejects/delete.json", json={"key": mandrill_api_key, "email": msg.get("email")})
-                        if r.status_code == 200:
-                            removed += 1
-                st.success(f"✅ Removed {removed} emails from deny list.")
+        # Funnel chart rendering
+        st.markdown("---")
+        st.subheader("🧭 Growth Flow Funnel")
+        fig, ax = plt.subplots(figsize=(12, 6))
+        positions = {
+            "Sent": (0, 5),
+            "Opened": (-2, 4),
+            "Unopened": (2, 4),
+            "Rejected": (-1.5, 3),
+            "Soft Bounced": (2, 3),
+            "Delivered": (5, 3),
+        }
+        levels = {
+            "Sent": sent_count,
+            "Opened": len(opened),
+            "Unopened": sent_count - len(opened),
+            "Rejected": len(rejected),
+            "Soft Bounced": len(soft_bounced),
+            "Delivered": len(delivered),
+        }
+        colors = {
+            "Sent": "#dceefb",
+            "Opened": "#d3f9d8",
+            "Unopened": "#fff3cd",
+            "Rejected": "#f8d7da",
+            "Soft Bounced": "#ffe6cc",
+            "Delivered": "#e2e3f3"
+        }
+        for stage, (x, y) in positions.items():
+            width = 3.4 if y == 3 else 2.2
+            box = FancyBboxPatch((x - width/2, y - 0.4), width, 0.8,
+                                 boxstyle="round,pad=0.02", linewidth=1, edgecolor="#aaa",
+                                 facecolor=colors[stage])
+            ax.add_patch(box)
+            ax.text(x, y, f"{stage}\n{levels[stage]}", ha="center", va="center", fontsize=11, weight="medium", color="#333", fontname="DejaVu Sans")
+        def connect(parent, child):
+            x1, y1 = positions[parent]
+            x2, y2 = positions[child]
+            ax.add_patch(ConnectionPatch(xyA=(x1, y1 - 0.4), coordsA=ax.transData,
+                                         xyB=(x2, y2 + 0.4), coordsB=ax.transData,
+                                         arrowstyle="-|>", color="#888", lw=1.3))
+        connect("Sent", "Opened")
+        connect("Sent", "Unopened")
+        connect("Unopened", "Rejected")
+        connect("Unopened", "Soft Bounced")
+        connect("Unopened", "Delivered")
+        ax.set_xlim(-4, 7)
+        ax.set_ylim(2, 6)
+        ax.axis("off")
+        st.pyplot(fig)
 
-        if soft_bounced:
-            st.markdown("---")
-            st.subheader("📛 Soft Bounced Reasons")
-            reason_counts = defaultdict(int)
-            for msg in soft_bounced:
-                reason = (
-                    msg.get("diag") or
-                    msg.get("reject_reason") or
-                    msg.get("metadata", {}).get("smtp_response") or
-                    msg.get("metadata", {}).get("reason")
-                )
-                if reason:
-                    match = re.search(r"Recipient address rejected: (.*)", reason)
-                    if match:
-                        reason = match.group(1).strip()
-                    reason_counts[reason] += 1
-            for reason, count in reason_counts.items():
-                st.write(f"- **{reason}**: {count}")
-
-        unopened = [msg for msg in results if msg.get("opens", 0) == 0]
-        if unopened:
-            st.markdown("---")
-            st.subheader("📪 Unopened Emails")
+        with st.expander("📪 Unopened Emails (click to expand)", expanded=False):
+            unopened = [msg for msg in results if msg.get("opens", 0) == 0]
             for msg in unopened:
                 st.write(f"- {msg.get('email')}")
             confirm = st.checkbox("Confirm you want to resend these emails")
