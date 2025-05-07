@@ -87,7 +87,7 @@ with tab1:
                                 extra_html = f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>"
                     
                         # Rejected emails – add deny list removal button
-                       if state == "rejected":
+                        if state == "rejected":
                             to_email = msg.get("email", "")
                             reject_reason = msg.get("reject_reason", "")
                             
