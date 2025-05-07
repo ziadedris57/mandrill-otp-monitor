@@ -87,14 +87,27 @@ with tab1:
                     
                         # Rejected emails – add deny list removal button
                         if state == "rejected":
-                            extra_html += f"""
-                            <form method='post'>
-                                <button onclick="window.location.reload();"
-                                style='background:#f44336;color:white;padding:8px 16px;border:none;border-radius:5px;margin-top:10px;'>
-                                    Remove from Deny List
-                                </button>
-                            </form>
-                            """
+                            reject_reason = msg.get("reject_reason", "")
+                            is_denied = "deny" in reject_reason.lower()
+                        
+                            if is_denied:
+                                to_email = msg.get("email")
+                                if to_email:
+                                    remove_key = f"remove_{to_email.replace('@', '_').replace('.', '_')}"
+                                    if st.button(f"🧹 Remove from Deny List for {to_email}", key=remove_key):
+                                        remove_payload = {
+                                            "key": mandrill_api_key,
+                                            "email": to_email
+                                        }
+                                        remove_response = requests.post(
+                                            "https://mandrillapp.com/api/1.0/rejects/delete.json",
+                                            json=remove_payload
+                                        )
+                                        if remove_response.status_code == 200:
+                                            st.success(f"✅ {to_email} removed from deny list.")
+                                        else:
+                                            st.error(f"❌ Failed to remove {to_email} from deny list.")
+
                     
                         # Delivered status label
                         readable_state = "✅ Successfully delivered" if state == "sent" else state
