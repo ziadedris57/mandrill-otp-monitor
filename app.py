@@ -54,7 +54,20 @@ with tab1:
                     for status, count in status_counts.items():
                         st.write(f"**{status.capitalize()}**: {count}")
                     for msg in results:
-                        state = msg.get("state")
+                    state = msg.get("state")
+                    if state == "soft-bounced":
+                        bounce_detail = (
+                            msg.get("diag", "") or
+                            msg.get("reject_reason", "") or
+                            msg.get("metadata", {}).get("smtp_response", "") or
+                            msg.get("metadata", {}).get("reason", "")
+                        )
+                        match = re.search(r"Recipient address rejected: (.*)", bounce_detail)
+                        if match:
+                            bounce_reason = match.group(1).strip()
+                            st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {bounce_reason}</p>", unsafe_allow_html=True)
+                        elif bounce_detail:
+                            st.markdown(f"<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>", unsafe_allow_html=True)
                         status_color = "#eafbea" if state == "sent" else ("#fff8e5" if state == "soft-bounced" else "#fdeaea")
                         st.markdown(f"""
 <div style='background-color:{status_color};padding:20px;margin:20px auto;border-radius:12px;font-family:sans-serif;border:1px solid #ccc;max-width:700px;'>
