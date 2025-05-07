@@ -21,15 +21,10 @@ body {
 </style>
 """, unsafe_allow_html=True)
 
-# Navigation tabs
-page = st.tabs(["Email Debugger", "Merchant Activation"])[0]
+# Create two main tabs
+tab1, tab2 = st.tabs(["Email Debugger", "Merchant Activation"])
 
-# Title
-st.markdown("""
-<h1 style='color:white; background-color:#003366; padding:20px; border-radius:10px; font-family:sans-serif;'>📧 TxM Simulator</h1>
-""", unsafe_allow_html=True)
-
-if page == "Email Debugger":
+with tab1:
     # Input for API key (hidden)
     mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
 
@@ -112,6 +107,6 @@ if page == "Email Debugger":
             else:
                 st.error("Failed to contact Mandrill API. Check your API key or network.")
 
-elif page == "Merchant Activation":
+with tab2:
     st.subheader("🚀 Merchant Activation")
     st.write("This is a placeholder for merchant onboarding functionality.")
