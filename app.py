@@ -5,9 +5,25 @@ from collections import Counter
 import re
 import json
 
+# Apply background styling and center layout
+st.markdown("""
+<style>
+body {
+    background: linear-gradient(to bottom right, #e0e0e0, #f7f7f7);
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+.block-container {
+    margin: auto;
+    max-width: 800px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Title
 st.markdown("""
-<h1 style='color:#003366;font-family:sans-serif;'>📧 TxM Simulator</h1>
+<h1 style='color:white; background-color:#003366; padding:20px; border-radius:10px; font-family:sans-serif;'>📧 TxM Simulator</h1>
 """, unsafe_allow_html=True)
 
 # Input for API key (hidden)
@@ -52,7 +68,7 @@ if st.button("Check Email Status"):
                     status_color = "#eafbea" if state == "sent" else ("#fff8e5" if state == "soft-bounced" else "#fdeaea")
 
                     st.markdown(f"""
-<div style='background-color:{status_color};padding:20px;margin:10px 0;border-radius:12px;font-family:sans-serif;border:1px solid #ccc;'>
+<div style='background-color:{status_color};padding:20px;margin:20px auto;border-radius:12px;font-family:sans-serif;border:1px solid #ccc;max-width:700px;'>
   <h4 style='margin-top:0;color:#003366;'>📨 Subject: {msg.get('subject')}</h4>
   <p style='color:#333;'><strong>Status:</strong> {'✅ Successfully delivered' if state == 'sent' else state}</p>
   <p style='color:#333;'><strong>Sent At:</strong> {datetime.datetime.fromtimestamp(msg.get('ts')).strftime('%Y-%m-%d %H:%M:%S')}</p>
