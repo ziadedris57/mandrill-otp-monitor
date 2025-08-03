@@ -66,7 +66,7 @@ if st.button("Check Email Status"):
                     status_color = "#eafbea" if state == "sent" else ("#fff8e5" if state == "soft-bounced" else "#fdeaea")
                     extra_html = ""
 
-                    # Soft Bounced Reason
+                    # ---------- Soft Bounced Reason ----------
                     if state == "soft-bounced":
                         bounce_detail = (
                             msg.get("diag", "") or
@@ -78,15 +78,17 @@ if st.button("Check Email Status"):
                         if match:
                             bounce_reason = match.group(1).strip()
                             extra_html += f"""
-<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {bounce_reason}</p>
-"""
+<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Reason: {bounce_reason}</p>"""
                         elif bounce_detail:
                             extra_html += f"""
-<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>
-"""
+<p style='color:#8a6d3b;background:#fff3cd;padding:10px;border-radius:5px;'>⚠️ Bounce Detail: {bounce_detail.strip()}</p>"""
 
-                    # Rejected with Deny List Button
+                    # ---------- Rejected Reason & Deny List Button ----------
                     if state == "rejected":
+                        reject_reason = msg.get("reject_reason", "Unknown reason")
+                        extra_html += f"""
+<p style='color:#721c24;background:#f8d7da;padding:10px;border-radius:5px;'>🚫 Rejected: {reject_reason}</p>"""
+
                         if isinstance(to_email, str) and "@" in to_email:
                             safe_email = to_email.strip()
                             key_hash = hashlib.md5(safe_email.encode()).hexdigest()
@@ -99,6 +101,7 @@ if st.button("Check Email Status"):
                                 else:
                                     st.error("Failed to remove from deny list.")
 
+                    # ---------- Render Email Card ----------
                     st.markdown(f"""
 <div style='background-color:{status_color};padding:20px;margin:20px auto;border-radius:12px;font-family:sans-serif;border:1px solid #ccc;max-width:700px;'>
   <h4 style='margin-top:0;color:#003366;'>📨 Subject: {subject}</h4>
