@@ -87,15 +87,17 @@ if st.button("Check Email Status"):
 
                     # Rejected with Deny List Button
                     if state == "rejected":
-                        key_hash = hashlib.md5(to_email.encode()).hexdigest()
-                        button_key = f"remove_deny_{key_hash}"
-                        if st.button("🧹 Remove from Deny List", key=button_key):
-                            reject_payload = {"key": mandrill_api_key, "email": to_email}
-                            remove_response = requests.post("https://mandrillapp.com/api/1.0/rejects/delete.json", json=reject_payload)
-                            if remove_response.status_code == 200:
-                                st.success("Email successfully removed from deny list.")
-                            else:
-                                st.error("Failed to remove from deny list.")
+                        if isinstance(to_email, str) and "@" in to_email:
+                            safe_email = to_email.strip()
+                            key_hash = hashlib.md5(safe_email.encode()).hexdigest()
+                            button_key = f"remove_deny_{key_hash}"
+                            if st.button("🧹 Remove from Deny List", key=button_key):
+                                reject_payload = {"key": mandrill_api_key, "email": safe_email}
+                                remove_response = requests.post("https://mandrillapp.com/api/1.0/rejects/delete.json", json=reject_payload)
+                                if remove_response.status_code == 200:
+                                    st.success("Email successfully removed from deny list.")
+                                else:
+                                    st.error("Failed to remove from deny list.")
 
                     st.markdown(f"""
 <div style='background-color:{status_color};padding:20px;margin:20px auto;border-radius:12px;font-family:sans-serif;border:1px solid #ccc;max-width:700px;'>
