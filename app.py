@@ -27,6 +27,10 @@ st.title("📬 Email Debugger")
 mandrill_api_key = st.secrets["MANDRILL_API_KEY"]
 email = st.text_input("Enter Customer Email")
 
+# Initialize session state for feedback messages
+if "deny_list_result" not in st.session_state:
+    st.session_state.deny_list_result = None
+
 # -------------------- PROCESS --------------------
 if st.button("Check Email Status"):
     if not email:
@@ -100,11 +104,11 @@ if st.button("Check Email Status"):
                                 if remove_response.status_code == 200:
                                     result = remove_response.json()
                                     if result.get("deleted"):
-                                        st.success(f"✅ {to_email} successfully removed from deny list.")
+                                        st.session_state.deny_list_result = f"✅ {to_email} successfully removed from deny list."
                                     else:
-                                        st.warning(f"⚠️ {to_email} was not on the deny list.")
+                                        st.session_state.deny_list_result = f"⚠️ {to_email} was not on the deny list."
                                 else:
-                                    st.error("❌ Failed to contact Mandrill API for deny list removal.")
+                                    st.session_state.deny_list_result = "❌ Failed to contact Mandrill API for deny list removal."
 
                     # ---------- Render Email Card ----------
                     st.markdown(f"""
@@ -116,3 +120,8 @@ if st.button("Check Email Status"):
   {extra_html}
 </div>
 """, unsafe_allow_html=True)
+
+# Show deny list result if present
+if st.session_state.deny_list_result:
+    st.info(st.session_state.deny_list_result)
+    st.session_state.deny_list_result = None
