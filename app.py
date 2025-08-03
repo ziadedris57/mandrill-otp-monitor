@@ -98,9 +98,13 @@ if st.button("Check Email Status"):
                                 reject_payload = {"key": mandrill_api_key, "email": to_email}
                                 remove_response = requests.post("https://mandrillapp.com/api/1.0/rejects/delete.json", json=reject_payload)
                                 if remove_response.status_code == 200:
-                                    st.success("Email successfully removed from deny list.")
+                                    result = remove_response.json()
+                                    if result.get("deleted"):
+                                        st.success(f"✅ {to_email} successfully removed from deny list.")
+                                    else:
+                                        st.warning(f"⚠️ {to_email} was not on the deny list.")
                                 else:
-                                    st.error("Failed to remove from deny list.")
+                                    st.error("❌ Failed to contact Mandrill API for deny list removal.")
 
                     # ---------- Render Email Card ----------
                     st.markdown(f"""
