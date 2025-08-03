@@ -30,12 +30,15 @@ email = st.text_input("Enter Customer Email")
 # Initialize session state for feedback messages
 if "deny_list_result" not in st.session_state:
     st.session_state.deny_list_result = None
+if "checked_email" not in st.session_state:
+    st.session_state.checked_email = None
 
 # -------------------- PROCESS --------------------
 if st.button("Check Email Status"):
     if not email:
         st.warning("Please enter an email address.")
     else:
+        st.session_state.checked_email = email
         date_from = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
         search_payload = {
             "key": mandrill_api_key,
@@ -98,17 +101,18 @@ if st.button("Check Email Status"):
                             unique_key = f"{to_email}_{msg_id}"
                             key_hash = hashlib.md5(unique_key.encode()).hexdigest()
                             button_key = f"remove_deny_{key_hash}"
+
                             if st.button("🧹 Remove from Deny List", key=button_key):
                                 reject_payload = {"key": mandrill_api_key, "email": to_email}
                                 remove_response = requests.post("https://mandrillapp.com/api/1.0/rejects/delete.json", json=reject_payload)
                                 if remove_response.status_code == 200:
                                     result = remove_response.json()
                                     if result.get("deleted"):
-                                        st.session_state.deny_list_result = f"✅ {to_email} successfully removed from deny list."
+                                        st.success(f"✅ {to_email} successfully removed from deny list.")
                                     else:
-                                        st.session_state.deny_list_result = f"⚠️ {to_email} was not on the deny list."
+                                        st.warning(f"⚠️ {to_email} was not on the deny list.")
                                 else:
-                                    st.session_state.deny_list_result = "❌ Failed to contact Mandrill API for deny list removal."
+                                    st.error("❌ Failed to contact Mandrill API for deny list removal.")
 
                     # ---------- Render Email Card ----------
                     st.markdown(f"""
@@ -120,8 +124,3 @@ if st.button("Check Email Status"):
   {extra_html}
 </div>
 """, unsafe_allow_html=True)
-
-# Show deny list result if present
-if st.session_state.deny_list_result:
-    st.info(st.session_state.deny_list_result)
-    st.session_state.deny_list_result = None
